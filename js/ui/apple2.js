@@ -31,6 +31,7 @@ var stats;
 var vm;
 var tape;
 var _disk2;
+var _cffa;
 var audio;
 var keyboard;
 var io;
@@ -221,16 +222,25 @@ function doLoadLocalDisk(drive, file) {
         var parts = file.name.split('.');
         var ext = parts.pop().toLowerCase();
         var name = parts.join('.');
-        if (_disk2.setBinary(drive, name, ext, this.result)) {
-            driveLights.label(drive, name);
-            MicroModal.close('loading-modal');
-            initGamepad();
+        if (this.result.byteLength >= 800 * 1024) {
+            if (_cffa.setBinary(drive, name, ext, this.result)) {
+                driveLights.label(drive, name);
+                initGamepad();
+            }
+        } else {
+            if (_disk2.setBinary(drive, name, ext, this.result)) {
+                driveLights.label(drive, name);
+                initGamepad();
+            }
         }
+        MicroModal.close('loading-modal');
     };
     fileReader.readAsArrayBuffer(file);
 }
 
 export function doLoadHTTP(drive, _url) {
+    if (!_url) { MicroModal.close('http-modal'); }
+    MicroModal.show('loading-modal');
     var url = _url || document.querySelector('#http_url').value;
     if (url) {
         fetch(url).then(function(response) {
@@ -245,14 +255,21 @@ export function doLoadHTTP(drive, _url) {
             var fileParts = file.split('.');
             var ext = fileParts.pop().toLowerCase();
             var name = decodeURIComponent(fileParts.join('.'));
-            if (_disk2.setBinary(drive, name, ext, data)) {
-                driveLights.label(drive, name);
-                initGamepad();
+            if (data.byteLength >= 800 * 1024) {
+                if (_cffa.setBinary(drive, name, ext, data)) {
+                    driveLights.label(drive, name);
+                    initGamepad();
+                }
+            } else {
+                if (_disk2.setBinary(drive, name, ext, data)) {
+                    driveLights.label(drive, name);
+                    initGamepad();
+                }
             }
-            if (!_url) { MicroModal.close('http-modal'); }
+            MicroModal.close('loading-modal');
         }).catch(function(error) {
             window.alert(error.message);
-            if (!_url) { MicroModal.close('http-modal'); }
+            MicroModal.close('loading-modal');
         });
     }
 }
@@ -674,7 +691,7 @@ export function openPrinterModal() {
     MicroModal.show('printer-modal');
 }
 
-export function initUI(apple2, disk2, e) {
+export function initUI(apple2, disk2, cffa, e) {
     _apple2 = apple2;
     cpu = _apple2.getCPU();
     io = _apple2.getIO();
@@ -682,6 +699,7 @@ export function initUI(apple2, disk2, e) {
     vm = apple2.getVideoModes();
     tape = new Tape(io);
     _disk2 = disk2;
+    _cffa = cffa;
 
     keyboard = new KeyBoard(cpu, io, e);
     keyboard.create('#keyboard');
