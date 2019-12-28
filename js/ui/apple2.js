@@ -18,7 +18,7 @@ var startTime = Date.now();
 var lastCycles = 0;
 var lastFrames = 0;
 
-var hashtag;
+var hashtag = document.location.hash;
 
 var disk_categories = {'Local Saves': []};
 var disk_sets = {};
@@ -80,6 +80,17 @@ export function openSave(drive, event) {
         MicroModal.show('save-modal');
     }
 }
+
+export function openAlert(msg) {
+    var el = document.querySelector('#alert-modal .message');
+    el.innerText = msg;
+    MicroModal.show('alert-modal');
+}
+
+/********************************************************************
+ *
+ * Drag and Drop
+ */
 
 export function handleDragOver(drive, event) {
     event.preventDefault();
@@ -149,7 +160,7 @@ export function loadAjax(drive, url) {
         MicroModal.close('loading-modal');
     }).catch(function(error) {
         MicroModal.close('loading-modal');
-        window.alert(error.message);
+        openAlert(error.message);
     });
 }
 
@@ -211,7 +222,7 @@ function doLoadLocal(drive, file) {
     } else if (TAPE_TYPES.indexOf(ext) > -1) {
         tape.doLoadLocalTape(file);
     } else {
-        window.alert('Unknown file type: ' + ext);
+        openAlert('Unknown file type: ' + ext);
     }
 }
 
@@ -268,8 +279,8 @@ export function doLoadHTTP(drive, _url) {
             }
             MicroModal.close('loading-modal');
         }).catch(function(error) {
-            window.alert(error.message);
             MicroModal.close('loading-modal');
+            openAlert(error.message);
         });
     }
 }
@@ -435,7 +446,7 @@ function saveLocalStorage(drive, name) {
 
     window.localStorage.diskIndex = JSON.stringify(diskIndex);
 
-    window.alert('Saved');
+    openAlert('Saved');
 
     driveLights.label(drive, name);
     driveLights.dirty(drive, false);
@@ -446,7 +457,7 @@ function deleteLocalStorage(name) {
     var diskIndex = JSON.parse(window.localStorage.diskIndex || '{}');
     if (diskIndex[name]) {
         delete diskIndex[name];
-        window.alert('Deleted');
+        openAlert('Deleted');
     }
     window.localStorage.diskIndex = JSON.stringify(diskIndex);
     updateLocalStorage();

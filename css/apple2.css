@@ -605,3 +605,8 @@ button:focus {
     font-family: monospace;
     white-space: pre;
 }
+
+#alert-modal-content {
+    min-width: 200px;
+    min-height: 50px;
+}
